@@ -16,15 +16,42 @@ import getpass
 import sys
 import time
 import pexpect
+import io
+import datetime
 #---------------------------------------------------------------------------------------------------
 class AuthenticationErrorException(Exception):
     """ Exception that is raised when the authentication fails """
     pass
 #---------------------------------------------------------------------------------------------------
+class CombinedStreams(io.StringIO):
+    """ Class to use multiple streams """
+
+    def __init__(self, streams = None):
+        """ The initiator sets the default values """
+
+        if type(streams) is list:
+            self.streams = streams
+        else:
+            self.streams = list()
+
+    def add(self, stream):
+        """ Method to append a stream """
+        self.streams.append(stream)
+
+    def delete(self, stream):
+        """ Method to delete a stream from the list """
+        self.streams = [ x for x in self.streams if x != stream ]
+
+    def write(self, *args, **kwargs):
+        """ The 'write' method writes the data to the stream """
+
+        for stream in self.streams:
+            stream.write(*args, **kwargs)
+#---------------------------------------------------------------------------------------------------
 class BulkCommand:
     """ Class to run commands on devices """
 
-    def __init__(self, devices, threads, username, password, commands, hide = False):
+    def __init__(self, devices, threads, username, password, commands, hide = False, output_file = None):
         """ Initiator sets default values """
 
         # Set specific values
@@ -33,11 +60,12 @@ class BulkCommand:
         self.username = username
         self.password = password
         self.commands = commands
+        self.output_file = output_file
 
         # Set the stream for the 'pexpect' module
-        self.outstream = sys.stdout
-        if hide:
-            self.outstream = None
+        self.outstream = CombinedStreams()
+        if hide == False:
+            self.outstream.add(sys.stdout)
 
         # Create a logger
         self.logger = logging.getLogger('BulkCommand')
@@ -49,6 +77,27 @@ class BulkCommand:
         devicename = devicename.upper()
         logger = logging.getLogger(devicename)
         logger.info('Starting processing device "{devicename}"'.format(devicename = devicename))
+
+        # If the user specified a file to write to, add it to the output streams
+        if self.output_file:
+            # Create objects for the date and time
+            today = datetime.date.today()
+            now = datetime.datetime.now()
+
+            # Replace the variables in the filename
+            filename = os.path.expanduser(self.output_file)
+            filename = filename.replace('%h', devicename)
+            filename = filename.replace('%d', today.strftime('%Y-%m-%d'))
+            filename = filename.replace('%t', now.strftime('%H.%M.%S'))
+
+            # Open the file and add it to the stream
+            outfile = None
+            try:
+                logger.debug('Opening "{filename}" in append mode'.format(filename = filename))
+                outfile = open(filename, 'a')
+                self.outstream.add(outfile)
+            except:
+                logging.critical('File "{filename}" couldn\'t be opened for writing in append mode'.format(filename = filename))
 
         # Log in to the device
         try:
@@ -81,6 +130,7 @@ class BulkCommand:
 
             # Execute the commands
             for command in self.commands:
+                logger.debug('Sending command "{command}"'.format(command = command))
                 sshp.sendline(command)
                 sshp.expect([ '^.+\#', pexpect.EOF ])
 
@@ -92,6 +142,12 @@ class BulkCommand:
         except Exception as e:
             logger.critical('Couldn\'t connect to "{devicename}"'.format(devicename = devicename))
             logger.debug('Error was: {e}'.format(e = e))
+
+        # Close the file
+        if self.output_file:
+            if outfile:
+                outfile.close()
+                self.outstream.delete(outfile)
 
         # Done
         logger.info('Done with device "{devicename}"'.format(devicename = devicename))
@@ -119,7 +175,8 @@ def main():
 
     # Optional arguments
     parser.add_argument('-m', '--max_threads', metavar = 'maxthreads', type = int, help = 'How many devices to do concurrent', default = 1)
-    parser.add_argument('-n', '--no-output', action = 'store_true', help = 'Hide the output of the devices')
+    parser.add_argument('-n', '--no-output', action = 'store_true', help = 'Hide the output of the devices from STDIN')
+    parser.add_argument('-s', '--save_output', metavar = 'filename', type = str, help = 'File to write the device output to')
     parser.add_argument('-v', '--verbose', action = 'count', help = 'The amount of logging to display', default = 0)
 
     # Parse the argument
@@ -211,7 +268,8 @@ def main():
         username = username,
         password = password,
         commands = commands,
-        hide = args.no_output
+        hide = args.no_output,
+        output_file = args.save_output
     )
     bulk.start()
 #---------------------------------------------------------------------------------------------------
