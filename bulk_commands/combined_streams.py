@@ -20,7 +20,7 @@ class CombinedStreams(io.StringIO):
 
     def delete(self, stream):
         """ Method to delete a stream from the list """
-        self.streams = [ x for x in self.streams if x != stream ]
+        self.streams = [ x for x in self.streams if not x is stream ]
 
     def write(self, *args, **kwargs):
         """ The 'write' method writes the data to the stream """

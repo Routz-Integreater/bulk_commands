@@ -28,9 +28,9 @@ class BulkCommand:
         self.output_file = output_file
 
         # Set the stream for the 'pexpect' module
-        self.outstream = CombinedStreams()
+        self.default_stream = None
         if hide == False:
-            self.outstream.add(sys.stdout)
+            self.default_stream = sys.stdout
 
         # Create a logger
         self.logger = logging.getLogger('BulkCommand')
@@ -55,19 +55,23 @@ class BulkCommand:
             filename = filename.replace('%d', today.strftime('%Y-%m-%d'))
             filename = filename.replace('%t', now.strftime('%H.%M.%S'))
 
-            # Open the file and add it to the stream
+            # Add the default stream and the filestream if needed
             outfile = None
+            outstream = CombinedStreams()
+            if self.default_stream:
+                outstream.add(self.default_stream)
+
             try:
                 logger.debug('Opening "{filename}" in append mode'.format(filename = filename))
                 outfile = open(filename, 'a')
-                self.outstream.add(outfile)
+                outstream.add(outfile)
             except:
                 logging.critical('File "{filename}" couldn\'t be opened for writing in append mode'.format(filename = filename))
 
         # Log in to the device
         try:
             sshp = pexpect.spawn('ssh {username}@{host}'.format(username = self.username, host = devicename), encoding = 'utf-8')
-            sshp.logfile_read = self.outstream
+            sshp.logfile_read = outstream
 
             # Search for the password prompt
             loggedin = False
@@ -112,7 +116,6 @@ class BulkCommand:
         if self.output_file:
             if outfile:
                 outfile.close()
-                self.outstream.delete(outfile)
 
         # Done
         logger.info('Done with device "{devicename}"'.format(devicename = devicename))
