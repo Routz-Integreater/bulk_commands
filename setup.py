@@ -11,7 +11,7 @@ setup(name='setup',
       license='GNU GPLv3',
       entry_points = {
             'console_scripts': [
-                'bulk_commands=main:main'
+                'bulk_commands=bulk:main'
                 ],
             },
       zip_safe=False)
