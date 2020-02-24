@@ -43,6 +43,11 @@ class BulkCommand:
         logger = logging.getLogger(devicename)
         logger.info('Starting processing device "{devicename}"'.format(devicename = devicename))
 
+        # New stream combiner
+        outstream = CombinedStreams()
+        if self.default_stream:
+            outstream.add(self.default_stream)
+
         # If the user specified a file to write to, add it to the output streams
         if self.output_file:
             # Create objects for the date and time
@@ -57,9 +62,6 @@ class BulkCommand:
 
             # Add the default stream and the filestream if needed
             outfile = None
-            outstream = CombinedStreams()
-            if self.default_stream:
-                outstream.add(self.default_stream)
 
             try:
                 logger.debug('Opening "{filename}" in append mode'.format(filename = filename))
