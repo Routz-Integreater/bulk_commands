@@ -85,15 +85,11 @@ class BulkCommand:
                     response = sshp.expect([ '^.+\#', 'Password: ' ])
                     if response == 0:
                         loggedin = True
-                        sshp.sendline()
                     else:
                         raise AuthenticationErrorException('Password is incorrect')
                 else:
                     logger.debug('We got a "yes/no" question: "{before}". Sending "yes"'.format(before = sshp.before))
                     sshp.sendline('yes')
-
-            # Wait for the prompt
-            sshp.expect('^.+\#')
 
             # Set the terminal length to 0
             sshp.sendline('term len 0')
@@ -104,10 +100,11 @@ class BulkCommand:
                 logger.debug('Sending command "{command}"'.format(command = command))
                 sshp.sendline(command)
                 response = -1
-                while response > 1:
-                    response = sshp.expect([ '^.+\#', pexpect.EOF, '[confirm]' ])
+                while response < 2:
+                    response = sshp.expect([ '^.+\#', pexpect.EOF, '[confirm]' ], timeout = 600)
                     if response == 2:
                         sshp.send('\n')
+                        sshp.expect('^.+\#')
 
             # Close the connection
             sshp.sendline('exit')
