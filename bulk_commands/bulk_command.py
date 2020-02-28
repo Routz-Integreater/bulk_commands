@@ -104,7 +104,6 @@ class BulkCommand:
                     response = sshp.expect([ '^.+\#', pexpect.EOF, '[confirm]' ], timeout = 600)
                     if response == 2:
                         sshp.send('\n')
-                        sshp.expect('^.+\#')
 
             # Close the connection
             sshp.sendline('exit')
