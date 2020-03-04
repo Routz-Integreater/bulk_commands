@@ -99,11 +99,7 @@ class BulkCommand:
             for command in self.commands:
                 logger.debug('Sending command "{command}"'.format(command = command))
                 sshp.sendline(command)
-                response = -1
-                while response < 2:
-                    response = sshp.expect([ '^.+\#', pexpect.EOF, '[confirm]' ], timeout = 600)
-                    if response == 2:
-                        sshp.send('\n')
+                response = sshp.expect([ '.+\#', pexpect.EOF ], timeout = 600)
 
             # Close the connection
             sshp.sendline('exit')
