@@ -99,10 +99,16 @@ class BulkCommand:
             for command in self.commands:
                 logger.debug('Sending command "{command}"'.format(command = command))
                 sshp.sendline(command)
-                response = sshp.expect([ '.+\#', pexpect.EOF ], timeout = 600)
+                while True:
+                    response = sshp.expect([ '.+\#', pexpect.EOF, '[confirm]' ], timeout = 600)
+                    if response == 2:
+                        sshp.sendline('\n')
+                    else:
+                        break
 
             # Close the connection
             sshp.sendline('exit')
+            sshp.expect(pexpect.EOF)
             sshp.close()
         except AuthenticationErrorException:
             logger.critical('Password is incorrect!')
