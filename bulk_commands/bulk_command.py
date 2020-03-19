@@ -78,8 +78,8 @@ class BulkCommand:
             # Search for the password prompt
             loggedin = False
             while not loggedin:
-                response = sshp.expect([ 'Password: ', '(yes/no)' ])
-                if response == 0:
+                response = sshp.expect([ 'Password: ', 'password:', '(yes/no)' ])
+                if response == 0 or response == 1:
                     logger.debug('Sending password')
                     sshp.sendline(self.password)
                     response = sshp.expect([ '^.+\#', 'Password: ' ])
