@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-setup(name='setup',
+setup(name='bulk_commands',
       version='0.1',
       description='Script om bulk commandos uit te voeren',
       url='/var/adm/projects/development/bulk_commands',
