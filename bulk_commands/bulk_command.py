@@ -100,8 +100,9 @@ class BulkCommand:
                 logger.debug('Sending command "{command}"'.format(command = command))
                 sshp.sendline(command)
                 while True:
-                    response = sshp.expect([ '.+\#', pexpect.EOF, '[confirm]' ], timeout = 600)
+                    response = sshp.expect([ '.+\#', pexpect.EOF, '\[confirm\]' ], timeout = 600)
                     if response == 2:
+                        print(response)
                         sshp.sendline('\n')
                     else:
                         break
