@@ -16,7 +16,7 @@ class AuthenticationErrorException(Exception):
 class BulkCommand:
     """ Class to run commands on devices """
 
-    def __init__(self, devices, threads, username, password, commands, hide = False, output_file = None):
+    def __init__(self, devices, threads, username, password, commands, hide = False, output_file = None, start_at_prompt = False):
         """ Initiator sets default values """
 
         # Set specific values
@@ -26,6 +26,7 @@ class BulkCommand:
         self.password = password
         self.commands = commands
         self.output_file = output_file
+        self.start_at_prompt = start_at_prompt
 
         # Set the stream for the 'pexpect' module
         self.default_stream = None
@@ -74,6 +75,8 @@ class BulkCommand:
         try:
             sshp = pexpect.spawn('ssh {username}@{host}'.format(username = self.username, host = devicename), encoding = 'utf-8')
             sshp.logfile_read = outstream
+            if self.start_at_prompt:
+                sshp.logfile_read = None
 
             # Search for the password prompt
             loggedin = False
@@ -94,6 +97,8 @@ class BulkCommand:
             # Set the terminal length to 0
             sshp.sendline('term len 0')
             sshp.expect('^.+\#')
+            sshp.logfile_read = outstream
+            sshp.sendline('\n')
 
             # Execute the commands
             for command in self.commands:

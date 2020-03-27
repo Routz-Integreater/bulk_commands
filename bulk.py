@@ -31,6 +31,7 @@ def main():
     # Optional arguments
     parser.add_argument('-m', '--max_threads', metavar = 'maxthreads', type = int, help = 'How many devices to do concurrent', default = 1)
     parser.add_argument('-n', '--no-output', action = 'store_true', help = 'Hide the output of the devices from STDIN')
+    parser.add_argument('-p', '--start-at-prompt', action = 'store_true', help = 'Starts the output to the streams as soon as it finds a prompt')
     parser.add_argument('-s', '--save_output', metavar = 'filename', type = str, help = 'File to write the device output to')
     parser.add_argument('-v', '--verbose', action = 'count', help = 'The amount of logging to display', default = 0)
 
@@ -124,7 +125,8 @@ def main():
         password = password,
         commands = commands,
         hide = args.no_output,
-        output_file = args.save_output
+        output_file = args.save_output,
+        start_at_prompt = args.start_at_prompt
     )
     bulk.start()
 #---------------------------------------------------------------------------------------------------
