@@ -4,10 +4,10 @@ from setuptools import setup
 
 setup(name='bulk_commands',
       version='0.1',
-      description='Script om bulk commandos uit te voeren',
+      description='Script to run bulk commands',
       url='/var/adm/projects/development/bulk_commands',
       author='Daryl Stark',
-      author_email='daryl.stark@kpn.com',
+      author_email='github@dstark.nl',
       license='GNU GPLv3',
       entry_points = {
             'console_scripts': [
