@@ -47,3 +47,4 @@ To run a few commands from a file on a multitude of devices, running on 32 devic
 ```
 bulk_commands -f commands.txt -m 32 switch1 switch2 switch3
 ```
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/Routz-Integreater/bulk_commands)
